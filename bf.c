@@ -192,8 +192,6 @@ void execute_code(Instructions *instructions) {
 
 int main(int argc, char **argv) {
   char* program = nob_shift_args(&argc, &argv);
-  printf("%s\n", program);
-
   if (argc == 0) {
     printf("Usage: %s <brainfuck source filename>\n", program);
     return 1;
@@ -209,7 +207,10 @@ int main(int argc, char **argv) {
   nob_log(INFO, "filename: %s", filename);
 
   Nob_String_Builder source = {0};
-  nob_read_entire_file(filename, &source);
+  if (!nob_read_entire_file(filename, &source)) {
+    fprintf(stderr, "File not found: %s\n", filename);
+    return 1;
+  }
   Nob_String_View source_sv = nob_sb_to_sv(source);
   Instructions instructions = {0};
   Jumps jumps = {0};
