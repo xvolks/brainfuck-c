@@ -59,10 +59,10 @@ pointer starting at cell 0.
    `Instructions` array of `{char instruction; u32 operand;}` records. Loop
    brackets are the only opcodes that need real work: each `[` pushes its
    index onto a temporary `Jumps` stack, and each `]` pops that stack to learn
-   the matching `[`. Once parsing finishes, a second loop back-patches both
-   operands so the `[` and `]` each hold the other's instruction index. This is
-   the standard "precompute jump targets" technique, so the inner interpreter
-   loop never has to search for a matching bracket.
+   the matching `[`. Thia version back-patches both operands so the `[` and `]`
+   each hold the other's instruction index. This is the standard "precompute
+   jump targets" technique, so the inner interpreter loop never has to search
+   for a matching bracket.
 
 2. **`execute_code`** (`bf.c:136`) — a straightforward dispatch loop. `ip` is
    the instruction pointer; each iteration copies one `Instruction` and
@@ -77,16 +77,27 @@ Non-jump opcodes leave `operand` at `1` and it is ignored.
 Set `DEBUG` to see the parse, the resolved jump table, and a disassembly:
 
 ```sh
-$ DEBUG=1 ./bf prog.bf
-[INFO] filename: prog.bf
-[INFO] Insert jz jump at 3
-[INFO] Insert jnz jump: 9
-[INFO] Jumps: 0: 3 -> 9
-[INFO]  - Jumps: [(9)
-[INFO] 0: +(1)
-[INFO] 3: [(9)
+$ DEBUG=1 ./bf ./samples/quine.bf
+[INFO] filename: ./samples/quine.bf
+[INFO] Insert jz jump at 355
+[INFO] Insert jz jump at 357
+[INFO] Insert jz jump at 362
+[INFO] Patch jz jump at 362 with destination 364
+[INFO] Insert jz jump at 367
+[INFO] Patch jz jump at 367 with destination 369
 ...
-[INFO] 9: ](3)
+[INFO] 354: +(1)
+[INFO] 355: [(399)
+[INFO] 356: -(1)
+[INFO] 357: [(371)
+[INFO] 358: -(1)
+[INFO] 359: >(1)
+[INFO] 360: >(1)
+[INFO] 361: +(1)
+[INFO] 362: [(364)
+[INFO] 363: >(1)
+[INFO] 364: ](362)
+...
 ```
 
 `DEBUG=0` or `DEBUG=false` (or leaving it unset) silences all output. The
@@ -153,5 +164,5 @@ These are all reproducible with the current source:
 
 ## License
 
-`bf.c` and `Makefile` are part of this project. `nob.h` is public domain
+`bf.c` and `Makefile` are part of this project. [`nob.h`](https://github.com/tsoding/nob.h) is public domain
 (© Tsoding), v3.10.0.
