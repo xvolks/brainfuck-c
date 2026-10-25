@@ -38,7 +38,7 @@ typedef struct {
 #define  Op_IN    ','
 
 void parse_source(Nob_String_View *source, Instructions *instructions, Jumps *jumps) {
-  Jumps jumps_temp = {0}; 
+  Jumps jumps_temp = {0};
 
   for (int i=0; i<source->count; ++i) {
     char current_char = source->items[i];
@@ -89,15 +89,16 @@ void parse_source(Nob_String_View *source, Instructions *instructions, Jumps *ju
       }
       break;
       case Op_JNZ: {
+        Jump jump = da_pop(&jumps_temp);
+        size_t jz_index = jump.jz_index;
+
+        // Back patch JZ instruction to jump here.
+        instructions->items[jz_index].operand = instructions->count;
+
         Instruction ins = {
           .instruction=current_char,
-          .operand=69,
+          .operand=jz_index,
         };
-
-        Jump jump = da_pop(&jumps_temp);
-        jump.jnz_index=instructions->count;
-        nob_log(INFO, "Insert jnz jump: %d", jump.jnz_index);
-        da_append(jumps, jump);
 
         da_append(instructions, ins);
       }
@@ -119,16 +120,6 @@ void parse_source(Nob_String_View *source, Instructions *instructions, Jumps *ju
       }
       break;
     };
-  }
-
-  nob_da_foreach(Jump, j, jumps) {
-      size_t index = j - jumps->items;
-      instructions->items[j->jz_index].operand=j->jnz_index;
-      instructions->items[j->jnz_index].operand=j->jz_index;
-
-      nob_log(INFO, "Jumps: %zu: %d -> %d", index, j->jz_index, j->jnz_index);
-      Instruction ins=instructions->items[j->jz_index];
-      nob_log(INFO, " - Jumps: %c(%d)", ins.instruction, ins.operand);
   }
 }
 
