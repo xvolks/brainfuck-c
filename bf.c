@@ -99,6 +99,7 @@ void parse_source(Nob_String_View *source, Instructions *instructions, Jumps *ju
           .instruction=current_char,
           .operand=jz_index,
         };
+        nob_log(INFO, "Patch jz jump at %zu with destination %d", jz_index, instructions->count);
 
         da_append(instructions, ins);
       }
